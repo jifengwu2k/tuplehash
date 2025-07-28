@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tuplehash"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "Pure Python reimplementation of CPython's `tuplehash` function with exact overflow behavior, designed for hashing user-defined immutable sequences."
 readme = "README.md"
 requires-python = ">=2"
@@ -18,7 +18,8 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "fixed-width-int"
+    "fixed-width-int",
+    "typing; python_version < '3.5'"
 ]
 
 [project.urls]

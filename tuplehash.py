@@ -3,10 +3,7 @@
 import ctypes
 import sys
 
-if sys.version_info < (3, 3):
-    from collections import Sequence
-else:
-    from collections.abc import Sequence
+from typing import Iterable, Optional, Sized
 from fixed_width_int import Signed, Unsigned
 
 # Type definitions
@@ -30,14 +27,21 @@ if sys.version_info < (3, 8):
     PY_UHASH_T_NEG_2 = PY_UHASH_T(-2)
 
 
-    def tuplehash(sequence):
-        # type: (Sequence) -> int
+    def tuplehash(iterable, length=None):
+        # type: (Iterable, Optional[int]) -> int
+        if length is None:
+            if isinstance(iterable, Sized):
+                length = len(iterable)
+            else:
+                raise TypeError('Cannot determine the length of iterable. Please explicitly pass a non-negative int to the length argument.')
+        elif not isinstance(length, int) or length < 0:
+            raise ValueError('length should a non-negative int')
 
-        remaining_length = PY_SSIZE_T(len(sequence) - 1)  # type: PY_SSIZE_T
+        remaining_length = PY_SSIZE_T(length - 1)  # type: PY_SSIZE_T
         mult = _PyHASH_MULTIPLIER  # type: PY_UHASH_T
         x = PY_UHASH_T_0x345678  # type: PY_UHASH_T
 
-        for p in sequence:
+        for p in iterable:
             y = PY_HASH_T(hash(p))  # type: PY_HASH_T
             x = (x ^ y) * mult
             mult += PY_HASH_T(PY_UHASH_T_82520 + remaining_length + remaining_length)
@@ -78,18 +82,26 @@ else:
             return (x << PY_UHASH_T_13) | (x >> PY_UHASH_T_19)  # type: ignore
 
 
-    def tuplehash(sequence):
-        # type: (Sequence) -> int
-        length = PY_SSIZE_T(len(sequence))  # type: PY_SSIZE_T
+    def tuplehash(iterable, length=None):
+        # type: (Iterable, Optional[int]) -> int
+        if length is None:
+            if isinstance(iterable, Sized):
+                length = len(iterable)
+            else:
+                raise TypeError('Cannot determine the length of iterable. Please explicitly pass a non-negative int to the length argument.')
+        elif not isinstance(length, int) or length < 0:
+            raise ValueError('length should a non-negative int')
+
+        fixed_width_length = PY_SSIZE_T(length)  # type: PY_SSIZE_T
         acc = _PyHASH_XXPRIME_5  # type: PY_UHASH_T
-        for item in sequence:
+        for item in iterable:
             lane = PY_UHASH_T(hash(item))  # type: PY_UHASH_T
             acc += lane * _PyHASH_XXPRIME_2
             acc = _PyHASH_XXROTATE(acc)
             acc *= _PyHASH_XXPRIME_1
 
         # Add input length, mangled to keep the historical value of hash(())
-        acc += length ^ (_PyHASH_XXPRIME_5 ^ PY_UHASH_T_3527539)
+        acc += fixed_width_length ^ (_PyHASH_XXPRIME_5 ^ PY_UHASH_T_3527539)
 
         if acc == PY_UHASH_T_NEG_1:
             return 1546275796

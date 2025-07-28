@@ -22,6 +22,13 @@ This creates memory overhead for large collections.
 Until such stdlib functionality exists, `tuplehash` provides:
 
 ```python
+# Explicitly provide a non-negative int to `len` if `len(iterable)` doesn't work
+def tuplehash(iterable, length=None): ...
+```
+
+So you can do this:
+
+```python
 from typing import TypeVar, Sequence
 
 from tuplehash import tuplehash
